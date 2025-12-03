@@ -391,11 +391,11 @@
             letter-spacing: 2px;
         }
 
-        .status-excellent { color: #00FF88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.8); }
-        .status-good { color: #00FFFF; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
-        .status-average { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
-        .status-bad { color: #FF6B6B; text-shadow: 0 0 10px rgba(255, 107, 107, 0.8); }
-        .status-poor { color: #FF0000; text-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+        .status-good { color: #00FF88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.8); }
+        .status-moderate { color: #00FFFF; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
+        .status-average { color: #00FFFF; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
+        .status-poor { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+        .status-unhealthy { color: #FF6B6B; text-shadow: 0 0 10px rgba(255, 107, 107, 0.8); }
 
         .card {
             background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
@@ -615,31 +615,58 @@
                 <!-- AQI Ranges Legend -->
                 <div class="aqi-ranges">
                     <div class="ranges-title">AQI Quality Ranges</div>
-                    <div class="ranges-grid">
-                        <div class="range-item">
-                            <div class="range-color" style="background: #00FF88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);"></div>
-                            <div class="range-text">Excellent</div>
-                            <div class="range-value">0-50</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                        <!-- PM2.5 Ranges -->
+                        <div>
+                            <div style="font-size: 16px; font-weight: 700; color: #00FFFF; margin-bottom: 15px; text-align: center; letter-spacing: 1px;">PM2.5</div>
+                            <div class="ranges-grid">
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #00FF88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);"></div>
+                                    <div class="range-text">Good</div>
+                                    <div class="range-value">0-30</div>
+                                </div>
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #00FFFF; box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);"></div>
+                                    <div class="range-text">Moderate</div>
+                                    <div class="range-value">30-60</div>
+                                </div>
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);"></div>
+                                    <div class="range-text">Poor</div>
+                                    <div class="range-value">60-90</div>
+                                </div>
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #FF6B6B; box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);"></div>
+                                    <div class="range-text">Unhealthy</div>
+                                    <div class="range-value">90-200</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="range-item">
-                            <div class="range-color" style="background: #00FFFF; box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);"></div>
-                            <div class="range-text">Good</div>
-                            <div class="range-value">51-100</div>
-                        </div>
-                        <div class="range-item">
-                            <div class="range-color" style="background: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);"></div>
-                            <div class="range-text">Average</div>
-                            <div class="range-value">101-150</div>
-                        </div>
-                        <div class="range-item">
-                            <div class="range-color" style="background: #FF6B6B; box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);"></div>
-                            <div class="range-text">Bad</div>
-                            <div class="range-value">151-200</div>
-                        </div>
-                        <div class="range-item">
-                            <div class="range-color" style="background: #FF0000; box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);"></div>
-                            <div class="range-text">Poor</div>
-                            <div class="range-value">201+</div>
+                        <!-- PM10 Ranges -->
+                        <div>
+                            <div style="font-size: 16px; font-weight: 700; color: #00FFFF; margin-bottom: 15px; text-align: center; letter-spacing: 1px;">PM10</div>
+                            <div class="ranges-grid">
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #00FF88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);"></div>
+                                    <div class="range-text">Good</div>
+                                    <div class="range-value">0-50</div>
+                                </div>
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #00FFFF; box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);"></div>
+                                    <div class="range-text">Average</div>
+                                    <div class="range-value">50-100</div>
+                                </div>
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);"></div>
+                                    <div class="range-text">Poor</div>
+                                    <div class="range-value">100-250</div>
+                                </div>
+                                <div class="range-item">
+                                    <div class="range-color" style="background: #FF6B6B; box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);"></div>
+                                    <div class="range-text">Unhealthy</div>
+                                    <div class="range-value">250-500</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -903,13 +930,22 @@
             charts[`card${cardIndex}`] = new Chart(ctx, config);
         }
 
-        // Get AQI status based on PM value (works for both PM2.5 and PM10)
-        function getAQIStatus(pmValue) {
-            if (pmValue <= 50) return { status: 'Excellent', color: '#00FF88', class: 'status-excellent' };
-            if (pmValue <= 100) return { status: 'Good', color: '#00FFFF', class: 'status-good' };
-            if (pmValue <= 150) return { status: 'Average', color: '#FFD700', class: 'status-average' };
-            if (pmValue <= 200) return { status: 'Bad', color: '#FF6B6B', class: 'status-bad' };
-            return { status: 'Poor', color: '#FF0000', class: 'status-poor' };
+        // Get AQI status for PM2.5
+        function getPM25Status(pmValue) {
+            if (pmValue <= 30) return { status: 'Good', color: '#00FF88', class: 'status-good' };
+            if (pmValue <= 60) return { status: 'Moderate', color: '#00FFFF', class: 'status-moderate' };
+            if (pmValue <= 90) return { status: 'Poor', color: '#FFD700', class: 'status-poor' };
+            if (pmValue <= 200) return { status: 'Unhealthy', color: '#FF6B6B', class: 'status-unhealthy' };
+            return { status: 'Unhealthy', color: '#FF0000', class: 'status-unhealthy' };
+        }
+
+        // Get AQI status for PM10
+        function getPM10Status(pmValue) {
+            if (pmValue <= 50) return { status: 'Good', color: '#00FF88', class: 'status-good' };
+            if (pmValue <= 100) return { status: 'Average', color: '#00FFFF', class: 'status-average' };
+            if (pmValue <= 250) return { status: 'Poor', color: '#FFD700', class: 'status-poor' };
+            if (pmValue <= 500) return { status: 'Unhealthy', color: '#FF6B6B', class: 'status-unhealthy' };
+            return { status: 'Unhealthy', color: '#FF0000', class: 'status-unhealthy' };
         }
 
         // Draw speedometer gauge
@@ -966,9 +1002,9 @@
             const hyderabadPM25 = 100;
             const hyderabadPM10 = 150;
             
-            // Status calculations based on Hyderabad values
-            const pm25Status = getAQIStatus(hyderabadPM25);
-            const pm10Status = getAQIStatus(hyderabadPM10);
+            // Status calculations using separate functions for PM2.5 and PM10
+            const pm25Status = getPM25Status(hyderabadPM25);
+            const pm10Status = getPM10Status(hyderabadPM10);
             
             // Set canvas dimensions for PM2.5
             const pm25Canvas = document.getElementById('pm25Gauge');
@@ -980,9 +1016,9 @@
             pm10Canvas.width = 300;
             pm10Canvas.height = 200;
             
-            // Draw gauges
-            drawGauge('pm25Gauge', hyderabadPM25, 300, pm25Status);
-            drawGauge('pm10Gauge', hyderabadPM10, 300, pm10Status);
+            // Draw gauges with appropriate max values (200 for PM2.5, 500 for PM10)
+            drawGauge('pm25Gauge', hyderabadPM25, 200, pm25Status);
+            drawGauge('pm10Gauge', hyderabadPM10, 500, pm10Status);
             
             // Update PM2.5 values and status
             document.getElementById('pm25Value').textContent = hyderabadPM25.toFixed(1);
