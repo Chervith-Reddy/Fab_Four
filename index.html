@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+            color: #E0E0E0;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, transparent, #00FFFF, #8B5CF6, transparent) 1;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00FFFF, #8B5CF6, transparent);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .last-update {
+            font-size: 14px;
+            color: #8A8A8A;
+            font-weight: 400;
+        }
+
+        .last-update span {
+            color: #00FFFF;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(0, 255, 255, 0.1) inset,
+                0 0 40px rgba(0, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .hero-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00FFFF;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            letter-spacing: 1px;
+        }
+
+        .value-badge {
+            background: linear-gradient(135deg, #00FFFF 0%, #0099FF 100%);
+            color: #0a0e27;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.6),
+                0 4px 15px rgba(0, 255, 255, 0.3);
+            text-shadow: none;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .value-badge::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: badgeGlow 2s infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .hero-chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #8A8A8A;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .grid-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .speedometer-section {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(0, 255, 255, 0.1) inset,
+                0 0 30px rgba(0, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .speedometer-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .speedometer-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00FFFF;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .speedometer-subtitle {
+            font-size: 14px;
+            color: #8A8A8A;
+            letter-spacing: 1px;
+        }
+
+        .speedometer-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 50px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .speedometer-comparison {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .comparison-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00FFFF;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .comparison-gauges {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .aqi-ranges {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .ranges-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00FFFF;
+            text-align: center;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .ranges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .range-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .range-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .range-text {
+            font-size: 12px;
+            color: #E0E0E0;
+            font-weight: 600;
+        }
+
+        .range-value {
+            font-size: 11px;
+            color: #8A8A8A;
+            margin-left: auto;
+        }
+
+        .gauge-wrapper {
+            position: relative;
+            width: 300px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .gauge-canvas {
+            width: 100%;
+            height: 200px;
+            flex-shrink: 0;
+        }
+
+        .gauge-label {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #00FFFF;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+            position: relative;
+            z-index: 10;
+        }
+
+        .gauge-value {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gauge-status {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-excellent { color: #00FF88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.8); }
+        .status-good { color: #00FFFF; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
+        .status-average { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+        .status-bad { color: #FF6B6B; text-shadow: 0 0 10px rgba(255, 107, 107, 0.8); }
+        .status-poor { color: #FF0000; text-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+
+        .card {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(0, 255, 255, 0.1) inset,
+                0 0 30px rgba(0, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 450px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(0, 255, 255, 0.3) inset,
+                0 0 50px rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.4);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #00FFFF;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+            letter-spacing: 1px;
+        }
+
+        .card-chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .card-chart-container canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .card-stats {
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            margin-top: auto;
+        }
+
+        .card-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .card-stat-label {
+            font-size: 12px;
+            color: #8A8A8A;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .card-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00FFFF;
+            font-size: 18px;
+            font-weight: 600;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            letter-spacing: 2px;
+        }
+
+        .error {
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.1) 0%, rgba(255, 0, 50, 0.1) 100%);
+            color: #FF6B9D;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 107, 157, 0.3);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .grid-section {
+                grid-template-columns: 1fr;
+            }
+
+            .speedometer-container {
+                flex-direction: column;
+                gap: 40px;
+            }
+
+            .comparison-gauges {
+                width: 100%;
+            }
+
+            .ranges-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .card-chart-container {
+                height: 250px;
+            }
+
+            .grid-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>IoT Monitoring Dashboard</h1>
+            <div class="last-update">
+                Last Update: <span id="lastUpdate">Loading...</span>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Loading data from ThingSpeak...</div>
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="dashboard" style="display: none;">
+            <!-- AQI Speedometer Section -->
+            <div class="speedometer-section">
+                <div class="speedometer-header">
+                    <div class="speedometer-title">AQI Status</div>
+                    <div class="speedometer-subtitle">PM2.5 and PM10 Average Values</div>
+                </div>
+                <div class="speedometer-container">
+                    <!-- PM2.5 -->
+                    <div class="speedometer-comparison">
+                        <div class="comparison-title">PM2.5</div>
+                        <div class="comparison-gauges">
+                            <div class="gauge-wrapper">
+                                <canvas id="pm25Gauge" class="gauge-canvas"></canvas>
+                                <div class="gauge-value" id="pm25Value">-</div>
+                                <div class="gauge-status" id="pm25Status">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PM10 -->
+                    <div class="speedometer-comparison">
+                        <div class="comparison-title">PM10</div>
+                        <div class="comparison-gauges">
+                            <div class="gauge-wrapper">
+                                <canvas id="pm10Gauge" class="gauge-canvas"></canvas>
+                                <div class="gauge-value" id="pm10Value">-</div>
+                                <div class="gauge-status" id="pm10Status">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AQI Ranges Legend -->
+                <div class="aqi-ranges">
+                    <div class="ranges-title">AQI Quality Ranges</div>
+                    <div class="ranges-grid">
+                        <div class="range-item">
+                            <div class="range-color" style="background: #00FF88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);"></div>
+                            <div class="range-text">Excellent</div>
+                            <div class="range-value">0-50</div>
+                        </div>
+                        <div class="range-item">
+                            <div class="range-color" style="background: #00FFFF; box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);"></div>
+                            <div class="range-text">Good</div>
+                            <div class="range-value">51-100</div>
+                        </div>
+                        <div class="range-item">
+                            <div class="range-color" style="background: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);"></div>
+                            <div class="range-text">Average</div>
+                            <div class="range-value">101-150</div>
+                        </div>
+                        <div class="range-item">
+                            <div class="range-color" style="background: #FF6B6B; box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);"></div>
+                            <div class="range-text">Bad</div>
+                            <div class="range-value">151-200</div>
+                        </div>
+                        <div class="range-item">
+                            <div class="range-color" style="background: #FF0000; box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);"></div>
+                            <div class="range-text">Poor</div>
+                            <div class="range-value">201+</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Section for All Fields (2 columns, 3 rows) -->
+            <div class="grid-section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">PM2.5</div>
+                        <div class="value-badge" id="card0Value">-</div>
+                    </div>
+                    <div class="card-chart-container">
+                        <canvas id="card0Chart"></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">Average</div>
+                            <div class="card-stat-value" id="card0Average">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">PM10</div>
+                        <div class="value-badge" id="card1Value">-</div>
+                    </div>
+                    <div class="card-chart-container">
+                        <canvas id="card1Chart"></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">Average</div>
+                            <div class="card-stat-value" id="card1Average">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">CO2</div>
+                        <div class="value-badge" id="card2Value">-</div>
+                    </div>
+                    <div class="card-chart-container">
+                        <canvas id="card2Chart"></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">Average</div>
+                            <div class="card-stat-value" id="card2Average">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">CO</div>
+                        <div class="value-badge" id="card3Value">-</div>
+                    </div>
+                    <div class="card-chart-container">
+                        <canvas id="card3Chart"></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">Average</div>
+                            <div class="card-stat-value" id="card3Average">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Temperature</div>
+                        <div class="value-badge" id="card4Value">-</div>
+                    </div>
+                    <div class="card-chart-container">
+                        <canvas id="card4Chart"></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">Average</div>
+                            <div class="card-stat-value" id="card4Average">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Humidity</div>
+                        <div class="value-badge" id="card5Value">-</div>
+                    </div>
+                    <div class="card-chart-container">
+                        <canvas id="card5Chart"></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">Average</div>
+                            <div class="card-stat-value" id="card5Average">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js default configuration for futuristic theme
+        Chart.defaults.color = '#00FFFF';
+        Chart.defaults.borderColor = 'rgba(0, 255, 255, 0.2)';
+        Chart.defaults.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+
+        const API_URL = 'https://api.thingspeak.com/channels/2839248/feeds.json?api_key=OWWYZK5OXTZBC65U&results=8000';
+        
+        // Field mappings
+        const FIELDS = [
+            { id: 1, name: 'PM2.5', fieldKey: 'field1' },
+            { id: 2, name: 'PM10', fieldKey: 'field2' },
+            { id: 3, name: 'CO2', fieldKey: 'field3' },
+            { id: 4, name: 'CO', fieldKey: 'field4' },
+            { id: 5, name: 'Temperature', fieldKey: 'field5' },
+            { id: 6, name: 'Humidity', fieldKey: 'field6' }
+        ];
+
+        let charts = {};
+
+        // Fetch data from ThingSpeak
+        async function fetchData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                throw error;
+            }
+        }
+
+        // Parse data for a specific field (filter out negative values and store timestamps)
+        function parseFieldData(feeds, fieldKey) {
+            const values = [];
+            const labels = [];
+            const timestamps = [];
+            
+            feeds.forEach((feed, index) => {
+                const value = parseFloat(feed[fieldKey]);
+                // Only include non-negative, valid numeric values
+                if (!isNaN(value) && value >= 0) {
+                    values.push(value);
+                    labels.push(index);
+                    // Store timestamp for tooltip
+                    timestamps.push(feed.created_at || null);
+                }
+            });
+            
+            return { values, labels, timestamps };
+        }
+
+        // Calculate average
+        function calculateAverage(values) {
+            if (values.length === 0) return 0;
+            const sum = values.reduce((acc, val) => acc + val, 0);
+            return (sum / values.length).toFixed(2);
+        }
+
+        // Get latest value
+        function getLatestValue(values) {
+            return values.length > 0 ? parseFloat(values[values.length - 1]).toFixed(2) : '-';
+        }
+
+        // Create chart configuration with futuristic neon colors and time display
+        function createChartConfig(data, labels, timestamps) {
+            return {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '',
+                        data: data,
+                        borderColor: '#00FFFF',
+                        backgroundColor: 'rgba(0, 255, 255, 0.15)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: '#00FFFF',
+                        pointHoverBorderColor: '#8B5CF6',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            titleColor: '#00FFFF',
+                            bodyColor: '#FFFFFF',
+                            borderColor: '#00FFFF',
+                            borderWidth: 2,
+                            padding: 15,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    if (timestamps && timestamps[index]) {
+                                        const date = new Date(timestamps[index]);
+                                        return date.toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit'
+                                        });
+                                    }
+                                    return 'Data Point ' + index;
+                                },
+                                label: function(context) {
+                                    return 'Value: ' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            display: false,
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            };
+        }
+
+        // Initialize card charts
+        function initCardChart(canvasId, data, labels, timestamps, cardIndex) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const config = createChartConfig(data, labels, timestamps);
+            charts[`card${cardIndex}`] = new Chart(ctx, config);
+        }
+
+        // Get AQI status based on PM value (works for both PM2.5 and PM10)
+        function getAQIStatus(pmValue) {
+            if (pmValue <= 50) return { status: 'Excellent', color: '#00FF88', class: 'status-excellent' };
+            if (pmValue <= 100) return { status: 'Good', color: '#00FFFF', class: 'status-good' };
+            if (pmValue <= 150) return { status: 'Average', color: '#FFD700', class: 'status-average' };
+            if (pmValue <= 200) return { status: 'Bad', color: '#FF6B6B', class: 'status-bad' };
+            return { status: 'Poor', color: '#FF0000', class: 'status-poor' };
+        }
+
+        // Draw speedometer gauge
+        function drawGauge(canvasId, value, maxValue, statusInfo) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height - 20;
+            const radius = Math.min(canvas.width, canvas.height) * 0.4;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw gauge arc (semi-circle)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+            ctx.stroke();
+            
+            // Draw value arc
+            const percentage = Math.min(value / maxValue, 1);
+            const angle = Math.PI - (percentage * Math.PI);
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, angle, true);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = statusInfo.color;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = statusInfo.color;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Draw tick marks
+            for (let i = 0; i <= 5; i++) {
+                const tickAngle = Math.PI - (i / 5 * Math.PI);
+                const x1 = centerX + Math.cos(tickAngle) * radius;
+                const y1 = centerY + Math.sin(tickAngle) * radius;
+                const x2 = centerX + Math.cos(tickAngle) * (radius - 15);
+                const y2 = centerY + Math.sin(tickAngle) * (radius - 15);
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // Initialize speedometers for PM2.5 and PM10 (using Hyderabad average values)
+        function initSpeedometers(pm25Average, pm10Average) {
+            // Hyderabad average values (typical ranges)
+            const hyderabadPM25 = 100;
+            const hyderabadPM10 = 150;
+            
+            // Status calculations based on Hyderabad values
+            const pm25Status = getAQIStatus(hyderabadPM25);
+            const pm10Status = getAQIStatus(hyderabadPM10);
+            
+            // Set canvas dimensions for PM2.5
+            const pm25Canvas = document.getElementById('pm25Gauge');
+            pm25Canvas.width = 300;
+            pm25Canvas.height = 200;
+            
+            // Set canvas dimensions for PM10
+            const pm10Canvas = document.getElementById('pm10Gauge');
+            pm10Canvas.width = 300;
+            pm10Canvas.height = 200;
+            
+            // Draw gauges
+            drawGauge('pm25Gauge', hyderabadPM25, 300, pm25Status);
+            drawGauge('pm10Gauge', hyderabadPM10, 300, pm10Status);
+            
+            // Update PM2.5 values and status
+            document.getElementById('pm25Value').textContent = hyderabadPM25.toFixed(1);
+            document.getElementById('pm25Status').textContent = pm25Status.status;
+            document.getElementById('pm25Status').className = 'gauge-status ' + pm25Status.class;
+            
+            // Update PM10 values and status
+            document.getElementById('pm10Value').textContent = hyderabadPM10.toFixed(1);
+            document.getElementById('pm10Status').textContent = pm10Status.status;
+            document.getElementById('pm10Status').className = 'gauge-status ' + pm10Status.class;
+        }
+
+        // Update UI with data
+        function updateDashboard(thingSpeakData) {
+            const feeds = thingSpeakData.feeds || [];
+            
+            if (feeds.length === 0) {
+                throw new Error('No data available');
+            }
+
+            // Update last update timestamp
+            const lastFeed = feeds[feeds.length - 1];
+            const lastUpdate = lastFeed.created_at || new Date().toISOString();
+            document.getElementById('lastUpdate').textContent = new Date(lastUpdate).toLocaleString();
+
+            let pm25Average = 0;
+            let pm10Average = 0;
+
+            // Process each field
+            FIELDS.forEach((field, index) => {
+                const { values, labels, timestamps } = parseFieldData(feeds, field.fieldKey);
+                
+                if (values.length === 0) {
+                    console.warn(`No data for ${field.name}`);
+                    return;
+                }
+
+                const average = parseFloat(calculateAverage(values));
+                const latest = getLatestValue(values);
+
+                // Store PM2.5 and PM10 averages for speedometers
+                if (index === 0) {
+                    pm25Average = average;
+                } else if (index === 1) {
+                    pm10Average = average;
+                }
+
+                // Update all cards equally (0-5 for all 6 fields)
+                const cardIndex = index;
+                document.getElementById(`card${cardIndex}Value`).textContent = latest;
+                document.getElementById(`card${cardIndex}Average`).textContent = average.toFixed(2);
+                initCardChart(`card${cardIndex}Chart`, values, labels, timestamps, cardIndex);
+            });
+
+            // Initialize speedometers with both PM2.5 and PM10 averages
+            if (pm25Average > 0 && pm10Average > 0) {
+                initSpeedometers(pm25Average, pm10Average);
+            }
+        }
+
+        // Main initialization
+        async function init() {
+            try {
+                const data = await fetchData();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                updateDashboard(data);
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = `Error loading data: ${error.message}`;
+                console.error('Initialization error:', error);
+            }
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
+
